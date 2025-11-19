@@ -1,0 +1,31 @@
+(.venv) PS D:\Arquivos Pessoais\Curso Django\SiteBobinagem_v20 - Iniciando com ORM> python manage.py importar_motor_config ThreePhaseCoils/06_motor_combinations_final.csv
+
+Para atualizar o CSV >>     
+python manage.py importar_motor_config ThreePhaseCoils/06_motor_combinations_final.csv --limpar
+
+python manage.py shell
+
+Teste 1: Verificar total
+from ThreePhaseCoils.models import MotorConfiguration
+MotorConfiguration.objects.count()
+
+Teste 2: Buscar polos disponíveis para 36 ranhuras
+polos = MotorConfiguration.get_polos_disponiveis(36)
+
+Teste 3: Sugerir camada para motor de 5 CV
+camada = MotorConfiguration.sugerir_camada(S=36, P=4, potencia_cv=5)
+print(camada)
+
+Teste 4: Sugerir g_type para motor de 7.5 CV
+g_type = MotorConfiguration.sugerir_g_type(S=36, P=4, Camada='dupla', potencia_cv=7.5)
+print(g_type)
+
+Teste 5: Obter melhor configuração
+config = MotorConfiguration.get_melhor_configuracao(S=36, P=4, Camada='dupla', g_type='g=P')
+
+Teste 6: Listar todas configurações recomendadas para S=36
+configs = MotorConfiguration.get_configuracoes_recomendadas(S=36, P=4)
+for c in configs[:]:
+	print(f"Camada: {c.Camada}, g_type: {c.g_type}, y={c.y}, zeta={c.zeta}")
+
+exit()

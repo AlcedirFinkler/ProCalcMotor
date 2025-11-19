@@ -1,0 +1,167 @@
+/* Reset e variáveis globais para consistência moderna */
+:root {
+    --primary-dark: #212529; /* Cinza escuro para bg */
+    --accent-warning: #ffc107; /* Amarelo para destaques */
+    --text-muted: #6c757d;
+    --shadow-modern: 0 4px 20px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Animação fluida */
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fonte moderna e legível */
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); /* Gradiente sutil no fundo */
+    min-height: 100vh;
+}
+
+/* Banner Técnico Moderno */
+.banner-tecnico {
+    background: linear-gradient(90deg, var(--primary-dark), #343a40); /* Gradiente no banner */
+    font-weight: 500;
+    letter-spacing: 0.5px; /* Espaçamento para ar técnico */
+    box-shadow: var(--shadow-modern);
+}
+
+/* Navbar Moderno: Hover e Ativo */
+.navbar {
+    background: var(--primary-dark) !important;
+    box-shadow: var(--shadow-modern);
+    transition: var(--transition-smooth);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+}
+
+.nav-link {
+    color: #dee2e6 !important;
+    padding: 0.75rem 1.25rem !important;
+    border-radius: 8px; /* Bordas arredondadas modernas */
+    margin: 0 0.25rem;
+    transition: var(--transition-smooth);
+    position: relative; /* Para pseudo-elementos no hover */
+}
+
+.nav-link:hover {
+    color: var(--accent-warning) !important;
+    background: rgba(255, 193, 7, 0.1); /* Fundo sutil no hover */
+    transform: translateY(-2px); /* Elevação sutil */
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+}
+
+.nav-link.active {
+    color: var(--accent-warning) !important;
+    background: rgba(255, 193, 7, 0.15);
+    font-weight: 600;
+}
+
+/* Ícones no Navbar com animação */
+.nav-link i {
+    transition: var(--transition-smooth);
+}
+
+.nav-link:hover i {
+    transform: scale(1.1); /* Ícone cresce levemente */
+}
+
+/* Header Técnico Card */
+.header-technical {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px; /* Bordas mais arredondadas */
+    backdrop-filter: blur(10px); /* Efeito glassmorphism sutil */
+    transition: var(--transition-smooth);
+}
+
+.header-technical:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.card-title {
+    color: var(--primary-dark);
+    font-size: 2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra no texto para profundidade */
+}
+
+/* Content Card Moderno */
+.content-technical {
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.95); /* Leve transparência */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card-body {
+    padding: 2rem; /* Mais espaço interno */
+}
+
+/* Responsividade Aprimorada para Navbar */
+@media (max-width: 991.98px) { /* Abaixo de lg */
+    .navbar-nav {
+        background: rgba(33, 37, 41, 0.98); /* Fundo semi-transparente no mobile */
+        border-radius: 12px;
+        margin-top: 1rem;
+        padding: 1rem;
+        box-shadow: var(--shadow-modern);
+    }
+    
+    .nav-link {
+        margin: 0.5rem 0;
+        text-align: center; /* Centraliza no mobile */
+    }
+}
+
+/* Animações Gerais para Cards */
+.card {
+    transition: var(--transition-smooth);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-modern);
+}
+
+/* Scroll suave e overflow */
+html {
+    scroll-behavior: smooth;
+}
+
+.container {
+    max-width: 1200px; /* Largura máxima para modernidade */
+}
+
+.videos-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 16px;
+    }
+
+    .video-card {
+        background: white;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .video-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
+    }
+
+    .video-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .video-wrapper {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.video-wrapper video {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-width: 100%;
+}

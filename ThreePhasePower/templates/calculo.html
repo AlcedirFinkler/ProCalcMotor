@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Cálculo de Potência - Motor de Indução{% endblock %}
+
+{% block content %}
+    <h1 class="text-center mb-4">Estimativa de potência para motores</h1>
+    
+    <!-- SISTEMA DE ABAS -->
+    <div class="tabs-container" style="margin-bottom: 30px;">
+        <div class="tabs-header" style="display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px;">
+            <button class="tab-button {% if metodo_ativo != 'carcaca' %}active{% endif %}" 
+                    onclick="mostrarAba('dimensoes')" 
+                    id="tab-dimensoes"
+                    style="flex: 1; padding: 15px; border: none; background: none; cursor: pointer; font-size: 16px; font-weight: bold; border-bottom: 3px solid transparent;">
+                📏 Cálculo por Dimensões
+            </button>
+            <button class="tab-button {% if metodo_ativo == 'carcaca' %}active{% endif %}" 
+                    onclick="mostrarAba('carcaca')" 
+                    id="tab-carcaca"
+                    style="flex: 1; padding: 15px; border: none; background: none; cursor: pointer; font-size: 16px; font-weight: bold; border-bottom: 3px solid transparent;">
+                🏭 Consulta por Carcaça
+            </button>
+        </div>
+
+        <!-- ABA 1: CÁLCULO POR DIMENSÕES -->
+        <div id="aba-dimensoes" class="tab-content" style="{% if metodo_ativo == 'carcaca' %}display: none;{% endif %}">
+            <div class="info-box" style="margin-bottom: 20px;">
+                <p><strong>ℹ️ Método 1 - Cálculo por Dimensões:</strong></p>
+                <p>Insira o diâmetro do rotor e comprimento axial para estimar a potência do motor.</p>
+            </div>
+
+            <form method="post" id="form-dimensoes">
+                {% csrf_token %}
+                <input type="hidden" name="metodo" value="dimensoes">
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="{{ form_dimensoes.diametro.id_for_label }}">{{ form_dimensoes.diametro.label }}</label>
+                        {{ form_dimensoes.diametro }}
+                        {% if form_dimensoes.diametro.errors %}
+                            <span style="color: red; font-size: 12px;">{{ form_dimensoes.diametro.errors }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form_dimensoes.comprimento.id_for_label }}">{{ form_dimensoes.comprimento.label }}</label>
+                        {{ form_dimensoes.comprimento }}
+                        {% if form_dimensoes.comprimento.errors %}
+                            <span style="color: red; font-size: 12px;">{{ form_dimensoes.comprimento.errors }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="{{ form_dimensoes.polos.id_for_label }}">{{ form_dimensoes.polos.label }}</label>
+                        {{ form_dimensoes.polos }}
+                        {% if form_dimensoes.polos.errors %}
+                            <span style="color: red; font-size: 12px;">{{ form_dimensoes.polos.errors }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form_dimensoes.frequencia.id_for_label }}">{{ form_dimensoes.frequencia.label }}</label>
+                        {{ form_dimensoes.frequencia }}
+                        {% if form_dimensoes.frequencia.errors %}
+                            <span style="color: red; font-size: 12px;">{{ form_dimensoes.frequencia.errors }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-verificar">🔍 Calcular Potência</button>
+            </form>
+            
+            {% if resultado %}
+            <div class="resultado" style="margin-top: 30px;">
+                <h2>Resultados do Cálculo</h2>
+                
+                <!-- RESUMO DE ENTRADA -->
+                <div class="resumo-entrada">
+                    <strong>Dados de Entrada:</strong> Diâmetro: {{ resultado.dados_entrada.diametro }} mm | Comprimento: {{ resultado.dados_entrada.comprimento }} mm | Polos: {{ resultado.dados_entrada.polos }} | Frequência: {{ resultado.dados_entrada.frequencia }} Hz
+                </div>
+                
+                <div class="resultado-destaque resultado-item">
+                    <span class="resultado-label">Potência Estimada (kW)</span>
+                    <span class="resultado-valor">{{ resultado.potencia_kw }} kW</span>
+                </div>
+                
+                <div class="resultado-destaque resultado-item">
+                    <span class="resultado-label">Potência Estimada (CV)</span>
+                    <span class="resultado-valor">{{ resultado.potencia_cv }} CV</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ABA 2: CONSULTA POR CARCAÇA -->
+        <div id="aba-carcaca" class="tab-content" style="{% if metodo_ativo != 'carcaca' %}display: none;{% endif %}">
+            <div class="info-box" style="margin-bottom: 20px;">
+                <p><strong>ℹ️ Método 2 - Consulta por Carcaça:</strong></p>
+                <p>Selecione um tipo de carcaça para visualizar todas as potências disponíveis para cada número de polos.</p>
+            </div>
+
+            <form method="post" id="form-carcaca">
+                {% csrf_token %}
+                <input type="hidden" name="metodo" value="carcaca">
+                
+                <div class="form-group">
+                    <label for="{{ form_carcaca.carcaca.id_for_label }}">{{ form_carcaca.carcaca.label }}</label>
+                    {{ form_carcaca.carcaca }}
+                    {% if form_carcaca.carcaca.errors %}
+                        <span style="color: red; font-size: 12px;">{{ form_carcaca.carcaca.errors }}</span>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="btn-verificar">🔍 Consultar Potências</button>
+            </form>
+
+            {% if resultado_carcaca %}
+            <div class="resultado" style="margin-top: 30px;">
+                <h2>Potências Disponíveis - Carcaça {{ resultado_carcaca.carcaca }}</h2>
+                
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <thead>
+                            <tr style="background-color: #4CAF50; color: white;">
+                                <th style="padding: 15px; text-align: center; border: 1px solid #ddd;">Número de Polos</th>
+                                <th style="padding: 15px; text-align: center; border: 1px solid #ddd;">Velocidade Síncrona (rpm)</th>
+                                <th style="padding: 15px; text-align: center; border: 1px solid #ddd;">Faixa de Potência (kW)</th>
+                                <th style="padding: 15px; text-align: center; border: 1px solid #ddd;">Faixa de Potência (CV)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in resultado_carcaca.potencias %}
+                            <tr style="{% if forloop.counter|divisibleby:2 %}background-color: #f9f9f9;{% endif %}">
+                                <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-weight: bold;">
+                                    {{ item.polos }} polos
+                                </td>
+                                <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
+                                    {{ item.velocidade_sincrona_rpm }} rpm
+                                </td>
+                                <td style="padding: 12px; text-align: center; border: 1px solid #ddd; color: #2196F3; font-weight: bold;">
+                                    {{ item.faixa_kw }}
+                                </td>
+                                <td style="padding: 12px; text-align: center; border: 1px solid #ddd; color: #FF9800; font-weight: bold;">
+                                    {{ item.faixa_cv }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 20px; padding: 15px; background-color: #E3F2FD; border-left: 4px solid #2196F3; border-radius: 4px;">
+                    <p style="margin: 0; color: #1976D2;">
+                        <strong>📌 Nota:</strong> As faixas de potência são baseadas na norma IEC 60072-1 para motores de indução trifásicos. 
+                        Os valores consideram frequência de 60 Hz. Para aplicações específicas, consulte o catálogo do fabricante.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- INFO-BOX GERAL -->
+    <div class="info-box" style="margin-top: 40px;">
+        <p><strong>📋 Como usar este sistema:</strong></p>
+        <p><strong>Método 1 - Por Dimensões:</strong></p>
+        <p>1. Meça o diâmetro do rotor (D) em milímetros<br>
+        2. Meça o comprimento axial (L) em milímetros<br>
+        3. Selecione o número de polos do motor<br>
+        4. Selecione a frequência da rede elétrica<br>
+        5. Clique em "Calcular Potência" para obter a estimativa baseada nos calculos disponiveis no livro "Design of Electrical Machines" de K.G. UPADHYAY.</p>
+        
+        <p><strong>Método 2 - Por Carcaça:</strong></p>
+        <p>1. Selecione o tipo de carcaça do motor<br>
+        2. Clique em "Consultar Potências"<br>
+        3. Visualize todas as combinações possíveis de potência e número de polos para aquela carcaça</p>
+    </div>
+
+    <style>
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .tab-button.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50 !important;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs-header {
+                flex-direction: column;
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .btn-verificar {
+            width: 100%;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-verificar:hover {
+            background-color: #45a049;
+        }
+        
+        .resultado {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .resultado h2 {
+            color: #333;
+            margin-top: 0;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        
+        .resultado-destaque {
+            background-color: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .resultado-label {
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .resultado-valor {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .resumo-entrada {
+            background-color: #E3F2FD;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            color: #1976D2;
+        }
+        
+        .info-box {
+            background-color: #FFF3E0;
+            border-left: 4px solid #FF9800;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .info-box p {
+            margin: 5px 0;
+        }
+        
+        .sugestoes-lista {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sugestoes-lista li {
+            background-color: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 3px solid #4CAF50;
+        }
+        
+        .alerta-inconsistencia {
+            background-color: #FFEBEE;
+            color: #C62828;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #C62828;
+        }
+    </style>
+
+    <script>
+        function mostrarAba(aba) {
+            // Esconder todas as abas
+            document.getElementById('aba-dimensoes').style.display = 'none';
+            document.getElementById('aba-carcaca').style.display = 'none';
+            
+            // Remover classe active de todos os botões
+            document.getElementById('tab-dimensoes').classList.remove('active');
+            document.getElementById('tab-carcaca').classList.remove('active');
+            
+            // Mostrar aba selecionada e ativar botão
+            if (aba === 'dimensoes') {
+                document.getElementById('aba-dimensoes').style.display = 'block';
+                document.getElementById('tab-dimensoes').classList.add('active');
+            } else if (aba === 'carcaca') {
+                document.getElementById('aba-carcaca').style.display = 'block';
+                document.getElementById('tab-carcaca').classList.add('active');
+            }
+        }
+    </script>
+{% endblock %}

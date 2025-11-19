@@ -1,0 +1,648 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Configuração de Motor - SiteBobinagem{% endblock %}
+
+{% block extra_head %}
+<!-- Font Awesome para ícones -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .campo-oculto {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        margin-bottom: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Ocultar campos inicialmente - GARANTIR QUE FUNCIONE */
+    .campo-oculto {
+        display: none !important;
+    }
+    
+    .badge-recomendado {
+        background-color: #28a745;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        margin-left: 0.5rem;
+    }
+    
+    .campo-desabilitado {
+        background-color: #e9ecef;
+        opacity: 0.6;
+    }
+    
+    .info-box {
+        background-color: #e7f3ff;
+        border-left: 4px solid #0066cc;
+        padding: 12px;
+        margin-top: 10px;
+        border-radius: 4px;
+    }
+    
+    .loading-spinner {
+        display: none;
+        margin-left: 10px;
+    }
+    
+    select option.recomendado {
+        background-color: #d4edda;
+        font-weight: bold;
+    }
+    
+    .btn-submit {
+        margin-top: 20px;
+    }
+    
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .step {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        background-color: #e9ecef;
+        margin: 5px;
+        border-radius: 5px;
+        font-size: 0.85rem;
+        min-width: 100px;
+    }
+    
+    .step.active {
+        background-color: #0d6efd;
+        color: white;
+        font-weight: bold;
+    }
+    
+    .step.completed {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    @media (max-width: 768px) {
+        .step {
+            font-size: 0.7rem;
+            padding: 8px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">
+            <i class="fas fa-cog"></i> Configuração de Motor Trifásico
+        </h3>
+        <p class="mb-0 mt-2">Configure os parâmetros do motor passo a passo</p>
+    </div>
+    
+    <div class="card-body">
+        <!-- Indicador de Progresso -->
+        <div class="step-indicator">
+            <div class="step active" id="step-1">1. Ranhuras</div>
+            <div class="step" id="step-2">2. Polos</div>
+            <div class="step" id="step-3">3. Camada</div>
+            <div class="step" id="step-4">4. Ligação</div>
+            <div class="step" id="step-5">5. Passo</div>
+            <div class="step" id="step-6">6. Tensão</div>
+            <div class="step" id="step-7">7. Potência</div>
+            <div class="step" id="step-8">8. Dimensões</div>
+        </div>
+        
+        <!-- Mensagens -->
+        {% if mensagem %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> {{ mensagem }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+        
+        {% if erro %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> {{ erro }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+        
+        <!-- Formulário -->
+        <form method="post" id="configuracao-form">
+            {% csrf_token %}
+            
+            <!-- Campo 1: Número de Ranhuras (SEMPRE VISÍVEL) -->
+            <div class="form-group" id="grupo-ranhuras">
+                <label for="id_S" class="form-label">
+                    <strong>{{ form.S.label }}</strong>
+                </label>
+                {{ form.S }}
+                <small class="form-text text-muted">{{ form.S.help_text }}</small>
+                <div class="loading-spinner" id="loading-polos">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    Carregando polos disponíveis...
+                </div>
+            </div>
+            
+            <!-- Campo 2: Número de Polos (OCULTO INICIALMENTE) -->
+            <div class="form-group campo-oculto" id="grupo-polos">
+                <label for="id_P" class="form-label">
+                    <strong>{{ form.P.label }}</strong>
+                </label>
+                {{ form.P }}
+                <small class="form-text text-muted">{{ form.P.help_text }}</small>
+                <div class="loading-spinner" id="loading-camadas">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    Carregando opções de camada...
+                </div>
+                <div id="info-camada" class="info-box" style="display: none;"></div>
+            </div>
+            
+            <!-- Campo 3: Tipo de Camada (OCULTO INICIALMENTE) -->
+            <div class="form-group campo-oculto" id="grupo-camada">
+                <label for="id_Camada" class="form-label">
+                    <strong>{{ form.Camada.label }}</strong>
+                </label>
+                {{ form.Camada }}
+                <small class="form-text text-muted">{{ form.Camada.help_text }}</small>
+                <div class="loading-spinner" id="loading-g-types">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    Carregando tipos de ligação...
+                </div>
+                <div id="info-g-type" class="info-box" style="display: none;"></div>
+            </div>
+            
+            <!-- Campo 4: Tipo de Ligação (OCULTO INICIALMENTE) -->
+            <div class="form-group campo-oculto" id="grupo-g-type">
+                <label for="id_g_type" class="form-label">
+                    <strong>{{ form.g_type.label }}</strong>
+                </label>
+                {{ form.g_type }}
+                <small class="form-text text-muted">{{ form.g_type.help_text }}</small>
+                <div class="loading-spinner" id="loading-passos">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    Carregando passos disponíveis...
+                </div>
+                <div id="info-passo" class="info-box" style="display: none;"></div>
+            </div>
+            
+            <!-- Campo 5: Passo da Bobina (OCULTO INICIALMENTE) -->
+            <div class="form-group campo-oculto" id="grupo-passo">
+                <label for="id_y" class="form-label">
+                    <strong>{{ form.y.label }}</strong>
+                </label>
+                {{ form.y }}
+                <small class="form-text text-muted">{{ form.y.help_text }}</small>
+                <div id="info-configuracao" class="info-box" style="display: none;"></div>
+            </div>
+            
+            <hr class="my-4 campo-oculto" id="separador-1">
+            
+            <!-- Campo 6: Tensão (OCULTO INICIALMENTE) -->
+            <div class="form-group campo-oculto" id="grupo-tensao">
+                <label for="id_V" class="form-label">
+                    <strong>{{ form.V.label }}</strong>
+                </label>
+                {{ form.V }}
+                <small class="form-text text-muted">{{ form.V.help_text }}</small>
+            </div>
+            
+            <!-- Campo 7: Potência (OCULTO INICIALMENTE) -->
+            <div class="form-group campo-oculto" id="grupo-potencia">
+                <label for="id_potencia_cv" class="form-label">
+                    <strong>{{ form.potencia_cv.label }}</strong>
+                </label>
+                {{ form.potencia_cv }}
+                <small class="form-text text-muted">{{ form.potencia_cv.help_text }}</small>
+            </div>
+
+            <!-- Campo 8: Dimensões do núcleo (OCULTO INICIALMENTE) -->
+            <div class="form-group campo-oculto" id="grupo-dimensoes">
+                <label class="form-label">
+                    <strong>Dimensões do Núcleo</strong>
+                </label>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="id_diametro_mm" class="form-label">
+                            {{ form.diametro_mm.label }}
+                        </label>
+                        {{ form.diametro_mm }}
+                        <small class="form-text text-muted">{{ form.diametro_mm.help_text }}</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_comprimento_mm" class="form-label">
+                            {{ form.comprimento_mm.label }}
+                        </label>
+                        {{ form.comprimento_mm }}
+                        <small class="form-text text-muted">{{ form.comprimento_mm.help_text }}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botão de Submit (OCULTO INICIALMENTE) -->
+            <div class="d-grid gap-2 campo-oculto" id="grupo-submit">
+                <button type="submit" class="btn btn-primary btn-lg btn-submit" id="btn-submit">
+                    <i class="fas fa-calculator"></i> Processar Configuração
+                </button>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Informação:</strong> Os resultados serão impressos no terminal do servidor. 
+                    Verifique o console após enviar o formulário.
+                </div>
+            </div>
+
+            <!-- ================================================ -->
+            <!-- SEÇÃO DE RESULTADOS (exibida após cálculo) -->
+            <!-- ================================================ -->
+            {% if resultados_calculados %}
+            <div id="resultados-container" class="mt-5">
+                <hr class="my-4">
+                
+                <!-- Opções de Construção -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-list-ol"></i> Opções de Construção do Motor
+                        </h4>
+                        <p class="mb-0 mt-2">
+                            <small>Escolha uma das opções abaixo conforme a necessidade de corrente e tipo de ligação</small>
+                            <span class="text-xs fw-light"> Obs: Os cálculos são baseados nas equações do livro Design of Electrical Machines (K.G. Upadhyay), considerando B = 5 kGauss, FP=0.90 e Rend=0.9. Diversos fatores (material do núcleo, geometria, perdas etc.) influenciam o dimensionamento real. Núcleos de baixa qualidade podem exigir até ~15 % mais espiras. Os desenvolvedores não se responsabilizam por divergências. Consulte sempre um engenheiro especializado antes de fabricar.</span>
+                        </p>
+                    </div>
+                    <div class="card-body">
+                        {% for opcao in opcoes_construcao %}
+                        <div class="alert alert-secondary mb-3" role="alert">
+                            <h5 class="alert-heading">
+                                <i class="fas fa-cog"></i> Opção {{ opcao.numero }}
+                                {% if opcao.k1 == 1 %}
+                                    <span class="badge bg-success">Padrão</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">{{ opcao.k1 }} Paralelos</span>
+                                {% endif %}
+                            </h5>
+                            <hr>
+                            <p class="mb-2"><strong>{{ opcao.descricao }}</strong></p>
+                            
+                            <div class="mt-3">
+                                <h6>Resumo Técnico:</h6>
+                                <ul class="mb-0">
+                                    <li><strong>Configuração:</strong> {{ opcao.grupos_serie }} grupos em série × {{ opcao.grupos_paralelo }} circuitos paralelos</li>
+                                    <li><strong>Total de grupos:</strong> {{ opcao.grupos_total }}</li>
+                                    <li><strong>Bobinas por grupo:</strong> {{ opcao.bobinas_por_grupo }}</li>
+                                    <li><strong>Espiras por bobina:</strong> {{ opcao.espiras_por_bobina }}</li>
+                                    <li><strong>Fio recomendado:</strong> {{ opcao.fio_awg }} AWG</li>
+                                </ul>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Botão para novo cálculo -->
+                <div class="text-center mt-4">
+                    <a href="{% url 'espiras' %}" class="btn btn-lg btn-primary">
+                        <i class="fas fa-redo"></i> Realizar Novo Cálculo
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+console.log('🎯 SCRIPT INICIADO - Versão Corrigida FINAL');
+
+// Estado do formulário
+var formState = {
+    S: '',
+    P: '',
+    Camada: '',
+    g_type: '',
+    y: '',
+    potencia_cv: 5
+};
+
+// URLs das APIs
+const API_URLS = {
+    polos: '{% url "api_get_polos" %}',
+    camadas: '{% url "api_get_camadas" %}',
+    g_types: '{% url "api_get_g_types" %}',
+    passos: '{% url "api_get_passos" %}',
+    configuracao: '{% url "api_get_info_configuracao" %}'
+};
+
+console.log('🌐 URLs carregadas:', API_URLS);
+
+// ======= FUNÇÕES AUXILIARES =======
+function mostrarCampo(id) {
+    let el = document.getElementById(id);
+    if (el) {
+        el.classList.remove("campo-oculto");
+        console.log("👁️ Mostrando:", id);
+    }
+}
+
+function ocultarCampo(id) {
+    let el = document.getElementById(id);
+    if (el) {
+        el.classList.add("campo-oculto");
+    }
+}
+
+function ocultarCamposSubsequentes(inicio) {
+    let ordem = [
+        "grupo-polos", 
+        "grupo-camada",
+        "grupo-g-type",
+        "grupo-passo",
+        "separador-1",
+        "grupo-tensao",
+        "grupo-potencia",
+        "grupo-dimensoes",
+        "grupo-submit"
+    ];
+
+    let index = ordem.indexOf(inicio);
+    ordem.slice(index).forEach(id => ocultarCampo(id));
+}
+
+function clearSelect(id, placeholder) {
+    let el = document.getElementById(id);
+    if (el) {
+        el.innerHTML = `<option value="">${placeholder}</option>`;
+        el.disabled = true;
+    }
+}
+
+function updateProgress(step) {
+    document.querySelectorAll(".step").forEach(s => {
+        s.classList.remove("active");
+        s.classList.remove("completed");
+    });
+
+    for (let i = 1; i <= step; i++) {
+        let item = document.getElementById("step-" + i);
+        if (!item) continue;
+
+        if (i < step) item.classList.add("completed");
+        else item.classList.add("active");
+    }
+}
+
+// ======= INÍCIO =========
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("🚀 DOM Carregado — Iniciando...");
+    ocultarCamposSubsequentes("grupo-polos");
+    updateProgress(1);
+
+    if (typeof jQuery !== "undefined") {
+        configurarEventListeners();
+        console.log("✅ Event listeners configurados");
+    } else {
+        console.error("❌ jQuery não encontrado — SCRIPT NÃO FUNCIONA");
+    }
+});
+
+// ======= EVENTOS DO FORMULÁRIO =======
+function configurarEventListeners() {
+    const $ = jQuery;
+
+    // 1) RANHURAS
+    $("#ranhuras-select").on("change", function () {
+        const S = $(this).val();
+        formState.S = S;
+        console.log("🟦 Ranhuras:", S);
+
+        if (!S) {
+            ocultarCamposSubsequentes("grupo-polos");
+            updateProgress(1);
+            return;
+        }
+
+        $("#loading-polos").show();
+        ocultarCamposSubsequentes("grupo-camada");
+        updateProgress(2);
+
+        $.ajax({
+            url: API_URLS.polos,
+            method: "GET",
+            data: { S: S },
+            success: function (data) {
+                console.log("🟩 Polos recebidos:", data);
+
+                clearSelect("polos-select", "--- Selecione o número de polos ---");
+
+                if (data.polos && data.polos.length > 0) {
+                    data.polos.forEach(p =>
+                        $("#polos-select").append(`<option value="${p.value}">${p.label}</option>`)
+                    );
+
+                    $("#polos-select").prop("disabled", false);
+                    mostrarCampo("grupo-polos");
+                }
+            },
+            error: function () { alert("Erro ao carregar polos."); },
+            complete: function () { $("#loading-polos").hide(); }
+        });
+    });
+
+    // 2) POLOS
+    $("#polos-select").on("change", function () {
+        const P = $(this).val();
+        formState.P = P;
+        console.log("🟦 Polos:", P);
+
+        if (!P) {
+            ocultarCamposSubsequentes("grupo-camada");
+            updateProgress(2);
+            return;
+        }
+
+        $("#loading-camadas").show();
+        ocultarCamposSubsequentes("grupo-g-type");
+        updateProgress(3);
+
+        $.ajax({
+            url: API_URLS.camadas,
+            method: "GET",
+            data: { S: formState.S, P: P, potencia_cv: formState.potencia_cv },
+            success: function (data) {
+                console.log("🟩 Camadas recebidas:", data);
+
+                clearSelect("camada-select", "--- Selecione o tipo de camada ---");
+
+                data.camadas.forEach(c =>
+                    $("#camada-select").append(
+                        `<option value="${c.value}">${c.label}${c.recomendada ? " ⭐" : ""}</option>`
+                    )
+                );
+
+                $("#camada-select").prop("disabled", false);
+                mostrarCampo("grupo-camada");
+            },
+            complete: function () { $("#loading-camadas").hide(); }
+        });
+    });
+
+    // 3) CAMADA
+    $("#camada-select").on("change", function () {
+        const Camada = $(this).val();
+        formState.Camada = Camada;
+
+        console.log("🟦 Camada:", Camada);
+
+        if (!Camada) {
+            ocultarCamposSubsequentes("grupo-g-type");
+            updateProgress(3);
+            return;
+        }
+
+        $("#loading-g-types").show();
+        ocultarCamposSubsequentes("grupo-passo");
+        updateProgress(4);
+
+        $.ajax({
+            url: API_URLS.g_types,
+            method: "GET",
+            data: {
+                S: formState.S,
+                P: formState.P,
+                Camada: Camada,
+                potencia_cv: formState.potencia_cv
+            },
+            success: function (data) {
+                clearSelect("g-type-select", "--- Selecione o tipo de ligação ---");
+
+                data.g_types.forEach(g =>
+                    $("#g-type-select").append(
+                        `<option value="${g.value}">${g.label}${g.recomendada ? " ⭐" : ""}</option>`
+                    )
+                );
+
+                $("#g-type-select").prop("disabled", false);
+                mostrarCampo("grupo-g-type");
+            },
+            complete: function () { $("#loading-g-types").hide(); }
+        });
+    });
+
+    // 4) TIPO DE LIGAÇÃO
+    $("#g-type-select").on("change", function () {
+        const g_type = $(this).val();
+        formState.g_type = g_type;
+
+        if (!g_type) {
+            ocultarCamposSubsequentes("grupo-passo");
+            updateProgress(4);
+            return;
+        }
+
+        $("#loading-passos").show();
+        ocultarCamposSubsequentes("separador-1");
+        updateProgress(5);
+
+        $.ajax({
+            url: API_URLS.passos,
+            method: "GET",
+            data: {
+                S: formState.S,
+                P: formState.P,
+                Camada: formState.Camada,
+                g_type: g_type
+            },
+            success: function (data) {
+                clearSelect("passo-select", "--- Selecione o passo ---");
+
+                data.passos.forEach(p =>
+                    $("#passo-select").append(
+                        `<option value="${p.value}" data-zeta="${p.zeta}" data-nbobinas="${p.n_bobinas}">
+                            ${p.label}${p.recomendado ? " ⭐" : ""}
+                        </option>`
+                    )
+                );
+
+                $("#passo-select").prop("disabled", false);
+                mostrarCampo("grupo-passo");
+            },
+            complete: function () { $("#loading-passos").hide(); }
+        });
+    });
+
+    // 5) PASSO
+    $("#passo-select").on("change", function () {
+        const y = $(this).val();
+        formState.y = y;
+
+        if (!y) {
+            ocultarCamposSubsequentes("separador-1");
+            updateProgress(5);
+            return;
+        }
+
+        mostrarCampo("separador-1");
+        mostrarCampo("grupo-tensao");
+        mostrarCampo("grupo-potencia");
+        // mostrarCampo("grupo-submit");
+
+        updateProgress(6);
+    });
+
+    // 6) POTÊNCIA
+    $("#potencia-select").on("change", function () {
+        const potenciaVal = $(this).val();
+        formState.potencia_cv = parseFloat(potenciaVal);
+        
+        if (!potenciaVal) {
+            ocultarCamposSubsequentes("grupo-dimensoes");
+            updateProgress(7);
+            return;
+        }
+        
+        updateProgress(7);
+        mostrarCampo("grupo-dimensoes");  // Mostrar campo de dimensões
+    });
+    
+    // 7) DIMENSÕES
+    $("#diametro-input, #comprimento-input").on("input", function () {
+        const diametro = $("#diametro-input").val();
+        const comprimento = $("#comprimento-input").val();
+        
+        if (diametro && comprimento && diametro > 0 && comprimento > 0) {
+            updateProgress(8);
+            mostrarCampo("grupo-submit");  // Mostrar botão apenas após preencher dimensões
+        } else {
+            ocultarCampo("grupo-submit");
+            updateProgress(7);
+        }
+    });
+}
+
+</script>
+{% endblock %}

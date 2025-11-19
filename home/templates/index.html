@@ -1,0 +1,530 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Início - MotorCalcPro | Calculadora para Motores Elétricos{% endblock %}
+
+{% block description %}Ferramenta profissional para cálculo e dimensionamento de motores elétricos trifásicos. Simplificando a manutenção e rebobinagem de motores industriais.{% endblock %}
+
+{% block content %}
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1 class="display-4 text-center mb-4">
+            Bem-vindo ao <span class="text-warning">Motor</span>Calc<span class="text-warning">Pro</span>
+        </h1>
+        <p class="lead text-center text-muted mb-5">
+            A ferramenta essencial para profissionais de manutenção elétrica
+        </p>
+    </div>
+
+
+<!-- ==================== SEÇÃO DE VÍDEOS ==================== -->
+<section class="videos-section py-5 my-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold text-dark">
+                <i class="bi bi-play-btn-fill text-warning"></i> 
+                Veja o MotorCalcPro em Ação
+            </h2>
+            <p class="lead text-muted">Assista aos tutoriais rápidos e aprenda em minutos</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <!-- Vídeo 1 -->
+            <div class="col-12 col-lg-8 mx-auto mb-4">
+                <div class="video-card shadow-sm rounded overflow-hidden">
+                    <h4 class="video-title bg-primary text-white p-3 mb-0 text-center">
+                        1. Introdução ao MotorProCalc
+                    </h4>
+                    <div class="video-wrapper">
+                        <video controls preload="metadata" poster="{% static 'img/thumb-medicao.jpg' %}">
+                            <source src="{% static 'Video1.mp4' %}" type="video/mp4">
+                            Seu navegador não suporta vídeos em HTML5.
+                        </video>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vídeo 2 -->
+            <div class="col-12 col-lg-8 mx-auto mb-4">
+                <div class="video-card shadow-sm rounded overflow-hidden">
+                    <h4 class="video-title bg-success text-white p-3 mb-0 text-center">
+                        2. Cálculo de espiras
+                    </h4>
+                    <div class="video-wrapper">
+                        <video controls preload="metadata" poster="{% static 'img/thumb-espiras.jpg' %}">
+                            <source src="{% static 'Video2.mp4' %}" type="video/mp4">
+                            Seu navegador não suporta vídeos em HTML5.
+                        </video>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vídeo 3 -->
+            <div class="col-12 col-lg-8 mx-auto mb-4">
+                <div class="video-card shadow-sm rounded overflow-hidden">
+                    <h4 class="video-title bg-warning text-dark p-3 mb-0 text-center">
+                        3. Estimando a potência
+                    </h4>
+                    <div class="video-wrapper">
+                        <video controls preload="metadata" poster="{% static 'img/thumb-rebobinagem.jpg' %}">
+                            <source src="{% static 'Video3.mp4' %}" type="video/mp4">
+                            Seu navegador não suporta vídeos em HTML5.
+                        </video>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+
+    <!-- Cards de Problemas e Soluções -->
+    <div class="row mb-5">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 problem-card">
+                <div class="card-body">
+                    <div class="icon-wrapper mb-3">
+                        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h3 class="card-title text-danger">🔧 O Desafio Diário</h3>
+                    <p class="card-text">
+                        <strong>Você já passou por isso?</strong>
+                    </p>
+                    <ul class="problem-list">
+                        <li>😰 Contou errado o número de voltas do fio (espiras)?</li>
+                        <li>📏 Teve dúvidas sobre a espessura correta do fio?</li>
+                        <li>⚡ O motor voltou com menos potência após a manutenção?</li>
+                        <li>🔥 Pior ainda: o motor queimou logo depois do conserto?</li>
+                    </ul>
+                    <div class="alert alert-warning mt-3">
+                        <small><i class="bi bi-info-circle"></i> 
+                        <strong>Fato:</strong> 70% dos problemas em motores rebobinados vêm de erros de cálculo</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 solution-card">
+                <div class="card-body">
+                    <div class="icon-wrapper mb-3">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h3 class="card-title text-success">✅ Nossa Solução</h3>
+                    <p class="card-text">
+                        <strong>MotorCalcPro resolve isso para você!</strong>
+                    </p>
+                    <ul class="solution-list">
+                        <li>🎯 Cálculos precisos em segundos</li>
+                        <li>📊 Mais de 2.000 configurações testadas</li>
+                        <li>🛠️ Interface simples - sem complicação</li>
+                        <li>💡 Sugestões automáticas marcadas com ⭐</li>
+                    </ul>
+                    <div class="alert alert-success mt-3">
+                        <small><i class="bi bi-shield-check"></i> 
+                        <strong>Resultado:</strong> Motores funcionando perfeitamente na primeira tentativa</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Como Funciona -->
+    <div class="how-it-works-section mb-5">
+        <h2 class="text-center mb-4">
+            <i class="bi bi-gear-fill text-warning"></i> Como Funciona?
+        </h2>
+        <p class="text-center text-muted mb-4">Simples como 1, 2, 3!</p>
+        
+        <div class="row">
+            <div class="col-md-4 text-center mb-4">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h4>📏 Meça</h4>
+                    <p>Pegue as medidas básicas do motor: diâmetro, comprimento e número de ranhuras</p>
+                </div>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h4>💻 Digite</h4>
+                    <p>Insira os dados na calculadora. Não sabe algum valor? Use nossas sugestões com ⭐</p>
+                </div>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h4>📋 Receba</h4>
+                    <p>Obtenha todas as opções de bobinagem: fio fino com mais voltas ou fio grosso com menos voltas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ferramentas Disponíveis -->
+    <div class="tools-section mb-5">
+        <h2 class="text-center mb-4">
+            <i class="bi bi-tools text-warning"></i> Nossas Ferramentas
+        </h2>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="tool-card">
+                    <div class="tool-icon">
+                        <i class="bi bi-calculator-fill"></i>
+                    </div>
+                    <h4>Cálculo de Potência</h4>
+                    <p>Descubra a potência do motor através de suas dimensões ou tipo de carcaça</p>
+                    <a href="{% url 'calculo' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-arrow-right-circle"></i> Calcular Agora
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="tool-card">
+                    <div class="tool-icon">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                    </div>
+                    <h4>Cálculo de Espiras</h4>
+                    <p>Determine o número correto de voltas de fio e a bitola ideal para seu motor</p>
+                    <a href="{% url 'espiras' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-arrow-right-circle"></i> Calcular Espiras
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="tool-card">
+                    <div class="tool-icon">
+                        <i class="bi bi-diagram-3-fill"></i>
+                    </div>
+                    <h4>Diagramas</h4>
+                    <p>Visualize esquemas de ligação e diagramas técnicos para bobinagem</p>
+                    <a href="{% url 'diagrama' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-arrow-right-circle"></i> Ver Diagramas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Casos de Uso -->
+    <div class="use-cases-section mb-5">
+        <h2 class="text-center mb-4">
+            <i class="bi bi-briefcase-fill text-warning"></i> Quando Usar?
+        </h2>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="use-case-item">
+                    <h5><i class="bi bi-check-circle text-success"></i> Manutenção Preventiva</h5>
+                    <p>Verifique se as especificações do motor estão corretas antes de problemas aparecerem</p>
+                </div>
+                <div class="use-case-item">
+                    <h5><i class="bi bi-check-circle text-success"></i> Motor Sem Placa</h5>
+                    <p>Identifique as características quando a placa de identificação está danificada ou perdida</p>
+                </div>
+                <div class="use-case-item">
+                    <h5><i class="bi bi-check-circle text-success"></i> Rebobinagem</h5>
+                    <p>Calcule com precisão o número de espiras e bitola do fio para rebobinar</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="use-case-item">
+                    <h5><i class="bi bi-check-circle text-success"></i> Mudança de Velocidade</h5>
+                    <p>Converta motores de 2 polos para 4 polos (ou vice-versa) com segurança</p>
+                </div>
+                <div class="use-case-item">
+                    <h5><i class="bi bi-check-circle text-success"></i> Verificação de Serviço</h5>
+                    <p>Confirme se um motor rebobinado está com as especificações corretas</p>
+                </div>
+                <div class="use-case-item">
+                    <h5><i class="bi bi-check-circle text-success"></i> Orçamento Rápido</h5>
+                    <p>Estime rapidamente os materiais necessários para um serviço</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="cta-section text-center">
+        <div class="cta-box">
+            <h3 class="mb-4">🚀 Comece Agora Mesmo!</h3>
+            <p class="lead mb-4">
+                Pare de perder tempo com cálculos complexos.<br>
+                Garanta a qualidade do seu serviço com MotorCalcPro.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'calculo' %}" class="btn btn-warning btn-lg">
+                    <i class="bi bi-calculator"></i> Calcular Potência
+                </a>
+                <a href="{% url 'espiras' %}" class="btn btn-success btn-lg">
+                    <i class="bi bi-lightning-charge"></i> Calcular Espiras
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Info -->
+    <div class="footer-info mt-5">
+        <div class="row">
+            <div class="col-md-4 text-center">
+                <i class="bi bi-patch-check-fill text-success" style="font-size: 2rem;"></i>
+                <h6 class="mt-2">Confiável</h6>
+                <small class="text-muted">Baseado em normas técnicas IEC</small>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="bi bi-speedometer2 text-primary" style="font-size: 2rem;"></i>
+                <h6 class="mt-2">Rápido</h6>
+                <small class="text-muted">Resultados em segundos</small>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="bi bi-people-fill text-warning" style="font-size: 2rem;"></i>
+                <h6 class="mt-2">Simples</h6>
+                <small class="text-muted">Feito para profissionais práticos</small>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .hero-section {
+        padding: 2rem 0 3rem 0;
+        background: linear-gradient(135deg, rgba(255,193,7,0.1) 0%, rgba(40,167,69,0.1) 100%);
+        border-radius: 16px;
+        margin-bottom: 3rem;
+    }
+
+    /* Problem and Solution Cards */
+    .problem-card {
+        border-left: 4px solid #dc3545 !important;
+        transition: transform 0.3s ease;
+    }
+
+    .solution-card {
+        border-left: 4px solid #28a745 !important;
+        transition: transform 0.3s ease;
+    }
+
+    .problem-card:hover, .solution-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .icon-wrapper {
+        display: inline-block;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .problem-list, .solution-list {
+        list-style: none;
+        padding-left: 0;
+        line-height: 2;
+    }
+
+    /* How it Works Section */
+    .how-it-works-section {
+        background-color: #f8f9fa;
+        padding: 3rem 2rem;
+        border-radius: 16px;
+    }
+
+    .step-card {
+        padding: 2rem 1rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+
+    .step-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    }
+
+    .step-number {
+        display: inline-block;
+        width: 60px;
+        height: 60px;
+        line-height: 60px;
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        border-radius: 50%;
+        margin-bottom: 1rem;
+    }
+
+    /* Tools Section */
+    .tools-section {
+        padding: 2rem 0;
+    }
+
+    .tool-card {
+        text-align: center;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        height: 100%;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .tool-card:hover {
+        border-color: #ffc107;
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+
+    .tool-icon {
+        font-size: 3rem;
+        color: #ffc107;
+        margin-bottom: 1rem;
+    }
+
+    /* Use Cases */
+    .use-case-item {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease;
+    }
+
+    .use-case-item:hover {
+        transform: translateX(10px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .use-case-item h5 {
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .use-case-item p {
+        color: #666;
+        margin: 0;
+        font-size: 0.95rem;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        margin-top: 4rem;
+        padding: 3rem 0;
+    }
+
+    .cta-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .cta-box h3 {
+        color: white;
+    }
+
+    .cta-box .btn {
+        margin: 0.5rem;
+        padding: 12px 30px;
+        font-weight: bold;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        transition: transform 0.2s ease;
+    }
+
+    .cta-box .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+
+    /* Footer Info */
+    .footer-info {
+        padding: 2rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 1.5rem 1rem;
+        }
+        
+        .display-4 {
+            font-size: 2rem;
+        }
+        
+        .step-card {
+            margin-bottom: 1rem;
+        }
+        
+        .cta-box {
+            padding: 2rem 1rem;
+        }
+        
+        .gap-3 {
+            flex-direction: column;
+        }
+        
+        .cta-box .btn {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card, .step-card, .tool-card, .use-case-item {
+        animation: fadeIn 0.6s ease-out;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Adiciona animação suave ao scroll
+    document.addEventListener('DOMContentLoaded', function() {
+        // Anima elementos quando entram na viewport
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observa todos os cards
+        document.querySelectorAll('.card, .step-card, .tool-card, .use-case-item').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'all 0.6s ease-out';
+            observer.observe(el);
+        });
+    });
+</script>
+{% endblock %}

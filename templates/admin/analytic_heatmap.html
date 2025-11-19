@@ -1,0 +1,501 @@
+<!-- templates/admin/analytics_heatmap.html -->
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extrastyle %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.1/dist/MarkerCluster.Default.css" />
+<style>
+    .map-container {
+        height: 600px;
+        position: relative;
+        margin: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    #map {
+        height: 100%;
+        border-radius: 8px;
+    }
+    
+    .map-controls {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .control-group {
+        margin-bottom: 15px;
+    }
+    
+    .control-label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #666;
+    }
+    
+    .control-select {
+        width: 180px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+    }
+    
+    .control-button {
+        padding: 8px 16px;
+        margin: 5px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .control-button:hover {
+        background: #f0f0f0;
+    }
+    
+    .control-button.active {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .map-legend {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        z-index: 1000;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .legend-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin: 5px 0;
+        font-size: 12px;
+    }
+    
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+        border-radius: 4px;
+    }
+    
+    .map-stats {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 1000;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        max-width: 250px;
+    }
+    
+    .stats-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+    
+    .stats-item {
+        display: flex;
+        justify-content: space-between;
+        margin: 5px 0;
+        font-size: 12px;
+    }
+    
+    .stats-value {
+        font-weight: bold;
+        color: #007bff;
+    }
+    
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        border-radius: 8px;
+    }
+    
+    .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .popup-content {
+        min-width: 200px;
+    }
+    
+    .popup-title {
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 8px;
+        color: #333;
+    }
+    
+    .popup-stats {
+        font-size: 12px;
+        line-height: 1.6;
+    }
+    
+    .popup-stat {
+        display: flex;
+        justify-content: space-between;
+        margin: 3px 0;
+    }
+    
+    .popup-label {
+        color: #666;
+    }
+    
+    .popup-value {
+        font-weight: bold;
+        color: #007bff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="padding: 20px;">
+    <h2>🗺️ Mapa de Calor - Acessos por Região</h2>
+    <p style="color: #666; margin-bottom: 20px;">
+        Visualização geográfica dos acessos ao MotorCalcPro. 
+        Use os controles para filtrar por período e tipo de visualização.
+    </p>
+    
+    <div class="map-container">
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+        </div>
+        
+        <!-- Mapa -->
+        <div id="map"></div>
+        
+        <!-- Controles -->
+        <div class="map-controls">
+            <div class="control-group">
+                <label class="control-label">Período:</label>
+                <select class="control-select" id="periodSelect">
+                    <option value="7days">Últimos 7 dias</option>
+                    <option value="30days" selected>Últimos 30 dias</option>
+                    <option value="1year">Último ano</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">Visualização:</label>
+                <button class="control-button active" onclick="setView('heatmap')">
+                    🔥 Mapa de Calor
+                </button>
+                <button class="control-button" onclick="setView('markers')">
+                    📍 Marcadores
+                </button>
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">Mostrar:</label>
+                <button class="control-button active" onclick="setDataType('visits')">
+                    Visitas
+                </button>
+                <button class="control-button" onclick="setDataType('calculations')">
+                    Cálculos
+                </button>
+            </div>
+        </div>
+        
+        <!-- Estatísticas -->
+        <div class="map-stats" id="mapStats">
+            <div class="stats-title">📊 Estatísticas do Período</div>
+            <div class="stats-item">
+                <span>Total de Estados:</span>
+                <span class="stats-value" id="totalStates">0</span>
+            </div>
+            <div class="stats-item">
+                <span>Total de Cidades:</span>
+                <span class="stats-value" id="totalCities">0</span>
+            </div>
+            <div class="stats-item">
+                <span>Total de Acessos:</span>
+                <span class="stats-value" id="totalAccess">0</span>
+            </div>
+            <div class="stats-item">
+                <span>Período:</span>
+                <span class="stats-value" id="periodDisplay">-</span>
+            </div>
+        </div>
+        
+        <!-- Legenda -->
+        <div class="map-legend">
+            <div class="legend-title">Intensidade de Acessos</div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #fee0d2;"></div>
+                <span>1-10 acessos</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #fcbba1;"></div>
+                <span>11-50 acessos</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #fc9272;"></div>
+                <span>51-100 acessos</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #fb6a4a;"></div>
+                <span>101-500 acessos</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #cb181d;"></div>
+                <span>500+ acessos</span>
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="{% url 'admin:analytics_dashboard' %}" class="control-button">
+            ← Voltar ao Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.1/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+<script>
+// Variáveis globais
+let map;
+let currentView = 'heatmap';
+let currentDataType = 'visits';
+let heatmapLayer;
+let markersLayer;
+let mapData;
+
+// Inicializa o mapa
+function initMap() {
+    // Cria o mapa centrado no Brasil
+    map = L.map('map').setView([-15.7801, -47.9292], 4);
+    
+    // Adiciona tile layer (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Carrega dados iniciais
+    loadMapData();
+}
+
+// Carrega dados do servidor
+async function loadMapData() {
+    const period = document.getElementById('periodSelect').value;
+    
+    // Mostra loading
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    try {
+        const response = await fetch(`{% url 'admin:analytics_map_data' %}?period=${period}`);
+        mapData = await response.json();
+        
+        // Atualiza estatísticas
+        updateStats();
+        
+        // Atualiza visualização
+        updateVisualization();
+        
+    } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        alert('Erro ao carregar dados do mapa');
+    } finally {
+        // Esconde loading
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+}
+
+// Atualiza estatísticas
+function updateStats() {
+    if (!mapData) return;
+    
+    document.getElementById('totalStates').textContent = mapData.states.length;
+    document.getElementById('totalCities').textContent = mapData.cities.length;
+    
+    const totalVisits = mapData.cities.reduce((sum, city) => sum + city.total_visits, 0);
+    document.getElementById('totalAccess').textContent = totalVisits.toLocaleString('pt-BR');
+    
+    document.getElementById('periodDisplay').textContent = 
+        `${mapData.start_date} - ${mapData.end_date}`;
+}
+
+// Atualiza visualização do mapa
+function updateVisualization() {
+    // Remove camadas existentes
+    if (heatmapLayer) map.removeLayer(heatmapLayer);
+    if (markersLayer) map.removeLayer(markersLayer);
+    
+    if (currentView === 'heatmap') {
+        showHeatmap();
+    } else {
+        showMarkers();
+    }
+}
+
+// Mostra mapa de calor
+function showHeatmap() {
+    if (!mapData || !mapData.cities) return;
+    
+    const heatData = mapData.cities.map(city => {
+        const value = currentDataType === 'visits' ? city.total_visits : city.calculations;
+        const intensity = Math.min(value / 100, 1); // Normaliza intensidade
+        return [city.latitude, city.longitude, intensity];
+    });
+    
+    heatmapLayer = L.heatLayer(heatData, {
+        radius: 25,
+        blur: 15,
+        maxZoom: 10,
+        max: 1.0,
+        gradient: {
+            0.2: '#fee0d2',
+            0.4: '#fcbba1',
+            0.6: '#fc9272',
+            0.8: '#fb6a4a',
+            1.0: '#cb181d'
+        }
+    }).addTo(map);
+}
+
+// Mostra marcadores
+function showMarkers() {
+    if (!mapData || !mapData.cities) return;
+    
+    markersLayer = L.markerClusterGroup({
+        chunkedLoading: true,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true
+    });
+    
+    mapData.cities.forEach(city => {
+        const value = currentDataType === 'visits' ? city.total_visits : city.calculations;
+        
+        // Define cor do marcador baseado na intensidade
+        let color;
+        if (value <= 10) color = '#fee0d2';
+        else if (value <= 50) color = '#fcbba1';
+        else if (value <= 100) color = '#fc9272';
+        else if (value <= 500) color = '#fb6a4a';
+        else color = '#cb181d';
+        
+        // Cria marcador customizado
+        const marker = L.circleMarker([city.latitude, city.longitude], {
+            radius: Math.min(5 + value / 10, 20),
+            fillColor: color,
+            color: '#fff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        });
+        
+        // Adiciona popup
+        marker.bindPopup(`
+            <div class="popup-content">
+                <div class="popup-title">${city.city}/${city.state}</div>
+                <div class="popup-stats">
+                    <div class="popup-stat">
+                        <span class="popup-label">Visitas:</span>
+                        <span class="popup-value">${city.total_visits}</span>
+                    </div>
+                    <div class="popup-stat">
+                        <span class="popup-label">Cálculos:</span>
+                        <span class="popup-value">${city.calculations}</span>
+                    </div>
+                </div>
+            </div>
+        `);
+        
+        markersLayer.addLayer(marker);
+    });
+    
+    map.addLayer(markersLayer);
+}
+
+// Funções de controle
+function setView(view) {
+    currentView = view;
+    
+    // Atualiza botões
+    document.querySelectorAll('.map-controls button').forEach(btn => {
+        if (btn.onclick && btn.onclick.toString().includes(view)) {
+            btn.classList.add('active');
+        } else if (btn.onclick && btn.onclick.toString().includes('setView')) {
+            btn.classList.remove('active');
+        }
+    });
+    
+    updateVisualization();
+}
+
+function setDataType(dataType) {
+    currentDataType = dataType;
+    
+    // Atualiza botões
+    document.querySelectorAll('.map-controls button').forEach(btn => {
+        if (btn.onclick && btn.onclick.toString().includes(dataType)) {
+            btn.classList.add('active');
+        } else if (btn.onclick && btn.onclick.toString().includes('setDataType')) {
+            btn.classList.remove('active');
+        }
+    });
+    
+    updateVisualization();
+}
+
+// Event listeners
+document.getElementById('periodSelect').addEventListener('change', loadMapData);
+
+// Inicializa quando o documento carregar
+document.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}
